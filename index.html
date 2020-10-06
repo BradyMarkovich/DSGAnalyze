@@ -8,42 +8,50 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Converting CSV to JSON</title>
         <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-        <link rel="stylesheet" href="">
+
+        
+        <link rel="stylesheet" href="dsgsales.css">
+
+                
+        <script src="papaparse.min.js"></script>
+        <script src="jquery-3.4.1.min.js"></script>
     </head>
     <body>
-        
-            <script src="papaparse.min.js"></script>
-            <script src="jquery-3.4.1.min.js"></script>
 
-
-        
-            <div class="container h-100">
-                    <div class="row h-100 justify-content-center align-items-center">
-                      <form class="col-12">
-                        <div class="form-group">
-                          <label for="formGroupExampleInput">Example label</label>
-                          <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Example input">
-                        </div>
-                        <div class="form-group">
-                          <label for="formGroupExampleInput2">Another label</label>
-                          <input type="text" class="form-control" id="formGroupExampleInput2" placeholder="Another input">
-                        </div>
-                      </form>   
-                    </div>
-                  </div>
-            
+        <form class="form-signin">
+            <h1 class="h3 mb-3 font-weight-bold text-center">Upload File for Analysis</h1>
+            <div class="form-group">
+                <label for="formGroupExampleInput">Please enter a brand</label>
+                <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Brand name">
+              </div>
             <input type="file" name="File Upload" id="txtFileUpload" accept=".csv" />
+            <br>
+            <hr>    
+            <br>
+            <p>Total pairs of shoes sold at regular price: <a class="font-weight-bolder" id="cReg"></a></p>
+            <p>Total pairs of shoes sold without tax: <a class="font-weight-bolder" id="cTax"></a></p>
+            <p>Total pairs of shoes sold at 10&#37; off: <a class="font-weight-bolder" id="c10"></a></p>
+            <p>Total pairs of shoes sold at 20&#37; off: <a class="font-weight-bolder" id="c20"></a></p>
+            <p>Total pairs of shoes sold at 25&#37; off: <a class="font-weight-bolder" id="c25"></a></p>
+            <p>Total pairs of shoes sold at 30&#37; off: <a class="font-weight-bolder" id="c30"></a></p>
+            <p>Total pairs of shoes sold at 50&#37; off: <a class="font-weight-bolder" id="c50"></a></p>
+            <p>Total retail value: <a class="font-weight-bolder">&#36;</a><a class="font-weight-bolder" id="totRet">0</a></p>
+            <p>Total cost of goods: <a class="font-weight-bolder">&#36;</a><a class="font-weight-bolder" id="totCost">0</a></p>
+            <p>Total gross profit: <a class="font-weight-bolder">&#36;</a><a class="font-weight-bolder" id="totProf">0</a></p>
+          </form>
+        
             
 
-            <p>Total number of pairs sold at regular price: <a id="cReg"></a></p>
-            <p>Total number of pairs sold without tax: <a id="cTax"></a></p>
-            <p>Total number of pairs sold at 10 percent off: <a id="c10"></a></p>
-            <p>Total number of pairs sold at 20 percent off: <a id="c20"></a></p>
-            <p>Total number of pairs sold at 25 percent off: <a id="c25"></a></p>
-            <p>Total number of pairs sold at 30 percent off: <a id="c30"></a></p>
-            <p>Total number of pairs sold at 50 percent off: <a id="c50"></a></p>
+            
+             <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
     <script>
         
@@ -61,24 +69,36 @@
             
             
             
+            var totalRetVal = 0.0;
+            var totalCost = 0.0;
+            var totalProfit = 0.0;
 
-            var file = evt.target.files[0];
+            var file = evt.target.files[0]; //the first file in the uploaded files array
             var reader = new FileReader();
+
             reader.readAsText(file);
+
+            //loading data for analysis on the event of a file upload
             reader.onload = function(event) {
+
             var csvData = event.target.result;
             
+            //converting the data to an array leveraging Papaparse
             var results = Papa.parse(csvData, 
                 {
                     header : false,
                     dynamicTyping: true
                 });
             
-            console.log(results);
+            console.log(results); //writing the data to the console for debug
             
             var i;
             for (i = 1; i < results.data.length-1; i++) {
-                var discount = results.data[i][7] /results.data[i][5];
+                var discount = results.data[i][7] /results.data[i][5]; //getting the discount of the sale
+
+                totalProfit = totalProfit + results.data[i][10]; //calculating the total profit of the selected transactions
+                totalCost = totalCost + results.data[i][11]; //calculating the total cost
+                totalRetVal = totalRetVal + results.data[i][5]; //calculating the total retail value of the products
 
                 if (results.data[i][8] == 0){
                     counterTax = counterTax + results.data[i][4];
@@ -107,13 +127,14 @@
                 {
                     counter25 = counter25 + results.data[i][4];
                 }
-                else
+                else if (discount == 1.0)
                 {
                     counterReg = counterReg + results.data[i][4];
                 }
 
             }
             
+            //displaying ananlysis results
             document.getElementById("cReg").innerHTML = counterReg.toString();
             document.getElementById("cTax").innerHTML = counterTax.toString();
             document.getElementById("c10").innerHTML = counter10.toString();
@@ -121,9 +142,11 @@
             document.getElementById("c25").innerHTML = counter25.toString();
             document.getElementById("c30").innerHTML = counter30.toString();
             document.getElementById("c50").innerHTML = counter50.toString();
+            document.getElementById("totRet").innerHTML = totalRetVal.toString();
+            document.getElementById("totCost").innerHTML = totalCost.toString();
+            document.getElementById("totProf").innerHTML = totalProfit.toString();
 
             console.log(counter25);
-            console.log(counter33);
             
             };
             reader.onerror = function() {
